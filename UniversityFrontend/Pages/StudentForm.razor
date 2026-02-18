@@ -1,0 +1,75 @@
+@page "/student-form/{StudentID:int?}"
+@inject StudentService StudentService
+@using UniversityFrontend.DTOs
+@using UniversityFrontend.Services
+
+<h3>@(StudentID.HasValue ? "Edit Student" : "Add Student")</h3>
+
+<table class="form-table">
+    <tr>
+        <td><label>First Name:</label></td>
+        <td><InputText @bind-Value="student.FirstMidName" /></td>
+    </tr>
+    <tr>
+        <td><label>Last Name:</label></td>
+        <td><InputText @bind-Value="student.LastName" /></td>
+    </tr>
+    <tr>
+        <td><label>Enrollment Date:</label></td>
+        <td><InputDate @bind-Value="student.EnrollmentDate" /></td>
+    </tr>
+    <tr>
+        <td colspan="2" style="text-align:right;">
+            <button type="submit" class="btn btn-primary">Save</button>
+        </td>
+    </tr>
+</table>
+
+@if (message != null)
+{
+    <p>@message</p>
+}
+
+@code {
+    [Parameter] public int? StudentID { get; set; }
+    private StudentCreateDto student = new();
+    private string? message;
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (StudentID.HasValue)
+        {
+            var existing = await StudentService.GetStudentAsync(StudentID.Value);
+            if (existing != null)
+            {
+                student = new StudentCreateDto
+                {
+                    FirstMidName = existing.FirstMidName,
+                    LastName = existing.LastName,
+                    EnrollmentDate = existing.EnrollmentDate
+                };
+            }
+        }
+    }
+
+    private async Task HandleValidSubmit()
+    {
+        if (!StudentID.HasValue)
+        {
+            await StudentService.AddStudentAsync(student);
+            message = "Student added successfully!";
+        }
+        else
+        {
+            var updateDto = new StudentUpdateDto
+            {
+                StudentID = StudentID.Value,
+                FirstMidName = student.FirstMidName,
+                LastName = student.LastName,
+                EnrollmentDate = student.EnrollmentDate
+            };
+            await StudentService.UpdateStudentAsync(updateDto);
+            message = "Student updated successfully!";
+        }
+    }
+}

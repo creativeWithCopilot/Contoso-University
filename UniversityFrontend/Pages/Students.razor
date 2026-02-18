@@ -1,0 +1,54 @@
+@page "/students"
+@inject StudentService StudentService
+@using UniversityFrontend.DTOs
+@using UniversityFrontend.Services
+
+<h3>Students</h3>
+
+@if (students == null)
+{
+    <p><em>Loading...</em></p>
+}
+else
+{
+    <table class="table">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Name</th>
+                <th>Enrollment Date</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var s in students)
+            {
+                <tr>
+                    <td>@s.StudentID</td>
+                    <td>@s.FirstMidName @s.LastName</td>
+                    <td>@s.EnrollmentDate.ToShortDateString()</td>
+                    <td>
+                        <a href="/student-form/@s.StudentID">Edit</a> |
+                        <button @onclick="() => DeleteStudent(s.StudentID)">Delete</button>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+    <a href="/student-form">Add New Student</a>
+}
+
+@code {
+    private List<StudentDto>? students;
+
+    protected override async Task OnInitializedAsync()
+    {
+        students = await StudentService.GetStudentsAsync();
+    }
+
+    private async Task DeleteStudent(int id)
+    {
+        await StudentService.DeleteStudentAsync(id);
+        students = await StudentService.GetStudentsAsync();
+    }
+}

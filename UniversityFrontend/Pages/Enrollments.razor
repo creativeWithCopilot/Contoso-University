@@ -1,0 +1,56 @@
+@page "/enrollments"
+@inject EnrollmentService EnrollmentService
+@using UniversityFrontend.DTOs
+@using UniversityFrontend.Services
+
+<h3>Enrollments</h3>
+
+@if (enrollments == null)
+{
+    <p><em>Loading...</em></p>
+}
+else
+{
+    <table class="table">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Student</th>
+                <th>Course</th>
+                <th>Grade</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var e in enrollments)
+            {
+                <tr>
+                    <td>@e.EnrollmentID</td>
+                    <td>@e.StudentName</td>
+                    <td>@e.CourseTitle</td>
+                    <td>@e.Grade</td>
+                    <td>
+                        <a href="/enrollment-form/@e.EnrollmentID">Edit</a> |
+                        <button @onclick="() => DeleteEnrollment(e.EnrollmentID)">Delete</button>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+    <a href="/enrollment-form">Add New Enrollment</a>
+}
+
+@code {
+    private List<EnrollmentDto>? enrollments;
+
+    protected override async Task OnInitializedAsync()
+    {
+        enrollments = await EnrollmentService.GetEnrollmentsAsync();
+    }
+
+    private async Task DeleteEnrollment(int id)
+    {
+        await EnrollmentService.DeleteEnrollmentAsync(id);
+        enrollments = await EnrollmentService.GetEnrollmentsAsync();
+    }
+}

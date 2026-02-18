@@ -1,0 +1,79 @@
+@page "/course-form/{CourseID:int?}"
+@inject CourseService CourseService
+@using UniversityFrontend.DTOs
+@using UniversityFrontend.Services
+
+<h3>@(CourseID.HasValue ? "Edit Course" : "Add Course")</h3>
+
+<EditForm Model="course" OnValidSubmit="HandleValidSubmit">
+    <DataAnnotationsValidator />
+    <ValidationSummary />
+
+    <table class="form-table">
+        <tr>
+            <td><label>Course ID:</label></td>
+            <td><InputNumber @bind-Value="course.CourseID" disabled="@CourseID.HasValue" /></td>
+        </tr>
+        <tr>
+            <td><label>Title:</label></td>
+            <td><InputText @bind-Value="course.Title" /></td>
+        </tr>
+        <tr>
+            <td><label>Credits:</label></td>
+            <td><InputNumber @bind-Value="course.Credits" /></td>
+        </tr>
+        <tr>
+            <td colspan="2" style="text-align:right;">
+                <button type="submit" class="btn btn-primary">Save</button>
+            </td>
+        </tr>
+    </table>
+</EditForm>
+
+@if (message != null)
+{
+    <p>@message</p>
+}
+
+@code {
+    [Parameter] public int? CourseID { get; set; }
+    private CourseCreateDto course = new();
+    private string? message;
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (CourseID.HasValue)
+        {
+            var existing = await CourseService.GetCourseAsync(CourseID.Value);
+            if (existing != null)
+            {
+                course = new CourseCreateDto
+                {
+                    CourseID = existing.CourseID,
+                    Title = existing.Title,
+                    Credits = existing.Credits
+                };
+            }
+        }
+    }
+
+    private async Task HandleValidSubmit()
+    {
+        if (!CourseID.HasValue)
+        {
+            await CourseService.AddCourseAsync(course);
+            message = "Course added successfully!";
+        }
+        else
+        {
+            var updateDto = new CourseUpdateDto
+            {
+                CourseID = course.CourseID,
+                Title = course.Title,
+                Credits = course.Credits
+            };
+            await CourseService.UpdateCourseAsync(updateDto);
+            message = "Course updated successfully!";
+        }
+    }
+}
