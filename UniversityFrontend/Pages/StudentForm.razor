@@ -1,0 +1,81 @@
+@page "/student-form/{StudentID:int?}"
+@inject StudentService StudentService
+@using UniversityFrontend.DTOs
+@using UniversityFrontend.Services
+<!-- Heading changes depending on whether we are editing or adding a student -->
+<h3>@(StudentID.HasValue ? "Edit Student" : "Add Student")</h3>
+
+<!-- EditForm binds to the student model and calls HandleValidSubmit -->
+<EditForm Model="student" OnValidSubmit="HandleValidSubmit">
+    <DataAnnotationsValidator />
+    <ValidationSummary />
+    <!-- Table layout for form fields -->
+    <table class="form-table">
+        <tr>
+            <td><label>First Name:</label></td>
+            <td><InputText @bind-Value="student.FirstMidName" /></td> <!-- InputText binds to FirstMidName property -->
+        </tr>
+        <tr>
+            <td><label>Last Name:</label></td>
+            <td><InputText @bind-Value="student.LastName" /></td> <!-- InputText binds to LastName property -->
+        </tr>
+        <tr>
+            <td><label>Enrollment Date:</label></td>
+            <td><InputDate @bind-Value="student.EnrollmentDate" /></td> <!-- InputDate binds to EnrollmentDate property -->
+        </tr>
+        <tr>
+            <td colspan="2" style="text-align:right;">
+                <button type="submit" class="btn btn-primary">Save</button> <!-- Save button aligned to the right -->
+            </td>
+        </tr>
+    </table>
+</EditForm>
+<!-- Display success message after add/update -->
+@if (message != null)
+{
+    <p>@message</p>
+}
+
+@code {
+    [Parameter] public int? StudentID { get; set; } // Optional parameter: if present, we are editing an existing student
+    private StudentCreateDto student = new(); // Model bound to the form inputs, used for both creating and updating students
+    private string? message; // Holds success or feedback messages
+
+    protected override async Task OnInitializedAsync() // Lifecycle method called when the component is initialized.
+    {
+        if (StudentID.HasValue) // If StudentID is provided, we are editing an existing student, so we fetch its details to populate the form.
+        {
+            var existing = await StudentService.GetStudentAsync(StudentID.Value); // Fetch the existing student details by ID using StudentService
+            if (existing != null) // If the student exists, we populate the form model with its details for editing.
+            {
+                student = new StudentCreateDto
+                {
+                    FirstMidName = existing.FirstMidName,
+                    LastName = existing.LastName,
+                    EnrollmentDate = existing.EnrollmentDate
+                };
+            }
+        }
+    }
+
+    private async Task HandleValidSubmit() // Handles form submission.
+    {
+        if (!StudentID.HasValue) // If StudentID is not provided, we are adding a new student, so we call the AddStudentAsync method of StudentService.
+        {
+            await StudentService.AddStudentAsync(student); // Call the service to add the new student with the details from the form model.
+            message = "Student added successfully!";
+        }
+        else // If StudentID is provided, we are updating an existing student, so we call the UpdateStudentAsync method of StudentService with the updated details.
+        {
+            var updateDto = new StudentUpdateDto // Create a new StudentUpdateDto with the updated details from the form model, including the StudentID for identification.
+            {
+                StudentID = StudentID.Value,
+                FirstMidName = student.FirstMidName,
+                LastName = student.LastName,
+                EnrollmentDate = student.EnrollmentDate
+            };
+            await StudentService.UpdateStudentAsync(updateDto); // Call the service to update the existing student with the new details from the form model.
+            message = "Student updated successfully!"; // Set a success message to inform the user that the update was successful.
+        }
+    }
+}

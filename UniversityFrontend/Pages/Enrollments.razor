@@ -1,0 +1,113 @@
+@page "/enrollments"
+@inject EnrollmentService EnrollmentService
+@inject NavigationManager NavManager
+@inject IJSRuntime JSRuntime
+@using UniversityFrontend.DTOs
+@using UniversityFrontend.Services
+
+<h3>Enrollments</h3>
+<!-- Search Section -->
+<div class="mb-3">
+    <label for="searchBy">Search by:</label>
+    <select @bind="searchOption" id="searchBy" class="form-select">
+        <option value="StudentID">Student ID</option>
+        <option value="CourseID">Course ID</option>
+    </select>
+
+    <input type="text" @bind="searchTerm" placeholder="Enter search value..." class="form-control mt-2" />
+
+    <button class="btn btn-primary mt-2" @onclick="SearchEnrollments">Search</button>
+    <button class="btn btn-secondary mt-2" @onclick="ResetSearch">Back to full list</button>
+</div>
+
+@if (enrollments == null)
+{
+    <p><em>Loading...</em></p> <!-- Show a loading message while data is being fetched -->
+}
+else
+{
+    <!-- Display enrollments in a table -->
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Enrollment ID</th>
+                <th>Student ID</th>
+                <th>Student</th>
+                <th>Course ID</th>
+                <th>Course</th>
+                <th>Grade</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var e in enrollments)
+            {
+                <tr>
+                    <td>@e.EnrollmentID</td>
+                    <td>@e.StudentID</td>
+                    <td>@e.StudentName</td>
+                    <td>@e.CourseID</td>
+                    <td>@e.CourseTitle</td>
+                    <td>@e.Grade</td>
+                    <td>
+                        <button @onclick="() => EditEnrollment(e.EnrollmentID)">Edit</button> | <!-- Edit navigates to EnrollmentForm with EnrollmentID -->
+                        <button @onclick="() => DeleteEnrollment(e.EnrollmentID)">Delete</button> <!-- Delete calls DeleteEnrollment method -->
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+    <a href="/enrollment-form">Add New Enrollment</a> <!-- Link to add a new enrollment -->
+}
+
+@code {
+    private List<EnrollmentDto>? enrollments; // Holds the list of enrollments retrieved from the backend
+    private string searchOption = "StudentID"; // Default search option
+    private string searchTerm = string.Empty; // Search term entered by the user
+
+    // Lifecycle method called when the component is initialized. 
+    // Fetches the list of enrollments from the backend API.
+    protected override async Task OnInitializedAsync() 
+    {
+        enrollments = await EnrollmentService.GetEnrollmentsAsync();
+    }
+
+    // Filters enrollments based on selected search option (StudentID or CourseID).
+    private void SearchEnrollments() 
+    {
+        if (string.IsNullOrWhiteSpace(searchTerm) || enrollments == null)
+            return;
+
+        if (searchOption == "StudentID" && int.TryParse(searchTerm, out int studentId))
+        {
+            enrollments = enrollments.Where(e => e.StudentID == studentId).ToList();
+        }
+        else if (searchOption == "CourseID" && int.TryParse(searchTerm, out int courseId))
+        {
+            enrollments = enrollments.Where(e => e.CourseID == courseId).ToList();
+        }
+    }
+
+    // Resets the search and reloads all enrollments.
+    private async Task ResetSearch()
+    {
+        searchTerm = string.Empty;
+        enrollments = await EnrollmentService.GetEnrollmentsAsync();
+    }
+
+    // Navigates to the EnrollmentForm page for editing a specific enrollment.
+    private void EditEnrollment(int id) 
+    {
+        NavManager.NavigateTo($"enrollment-form/{id}");
+    }
+
+    // Deletes an enrollment by ID using EnrollmentService.
+    private async Task DeleteEnrollment(int id) 
+    {
+        if (await JSRuntime.InvokeAsync<bool>("confirm", $"Delete Enrollment {id}?")) 
+        {
+            await EnrollmentService.DeleteEnrollmentAsync(id); // If the user confirms, it calls the EnrollmentService to delete the enrollment by ID.
+            enrollments = await EnrollmentService.GetEnrollmentsAsync(); // After deletion, it refreshes the list of enrollments to reflect the changes in the UI.
+        }
+    }
+}

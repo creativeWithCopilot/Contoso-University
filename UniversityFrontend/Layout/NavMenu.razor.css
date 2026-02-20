@@ -1,0 +1,23 @@
+.navbar {
+    background-color: #000000; /* black background */
+}
+
+.navbar-brand {
+    font-size: 1.1rem;
+    color: #ffffff; /* white text */
+}
+
+.nav-link {
+    color: #ffffff; /* white text */
+    margin-right: 1rem;
+}
+
+.nav-link.active {
+    color: #ffffff;
+    font-weight: bold;
+    border-bottom: 2px solid #ffffff;
+}
+
+.nav-link:hover {
+    color: #d7d7d7; /* light gray on hover */
+}

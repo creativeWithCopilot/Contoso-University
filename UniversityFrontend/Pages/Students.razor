@@ -1,0 +1,128 @@
+@page "/students"
+@inject StudentService StudentService
+@inject NavigationManager NavManager
+@inject IJSRuntime JSRuntime
+@using UniversityFrontend.DTOs
+@using UniversityFrontend.Services
+
+<h3>Students</h3>
+<!-- Search Section -->
+<div class="mb-3">
+    <label for="searchBy">Search by:</label>
+    <select @bind="searchOption" id="searchBy" class="form-select">
+        <option value="StudentID">Student ID</option>
+        <option value="LastName">Last Name</option>
+        <option value="EnrollmentDate">Enrollment Date Range</option>
+    </select>
+
+    <!-- Input fields change depending on search option -->
+    @if (searchOption == "EnrollmentDate")
+    {
+        <div class="mt-2">
+            <label>From:</label>
+            <InputDate @bind-Value="startDate" />
+            <label class="ms-2">To:</label>
+            <InputDate @bind-Value="endDate" />
+        </div>
+    }
+    else
+    {
+        <input type="text" @bind="searchTerm" placeholder="Enter search value..." class="form-control mt-2" />
+    }
+
+    <button class="btn btn-primary mt-2" @onclick="SearchStudents">Search</button>
+    <button class="btn btn-secondary mt-2" @onclick="ResetSearch">Back to full list</button>
+</div>
+
+@if (students == null)
+{
+    <p><em>Loading...</em></p> <!-- Show a loading message while data is being fetched -->
+}
+else
+{
+    <!-- Display students in a table -->
+    <table class="table">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Name</th>
+                <th>Enrollment Date</th>
+                <th></th> <!-- Actions column -->
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var s in students)
+            {
+                <tr>
+                    <td>@s.StudentID</td>
+                    <td>@s.FirstMidName @s.LastName</td>
+                    <td>@s.EnrollmentDate.ToShortDateString()</td>
+                    <td>
+                        <button @onclick="() => EditStudent(s.StudentID)">Edit</button> | <!-- Edit navigates to StudentForm with StudentID -->
+                        <button @onclick="() => DeleteStudent(s.StudentID)">Delete</button> <!-- Delete calls DeleteStudent method with confirmation -->
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+    <a href="/student-form">Add New Student</a> <!-- Link to add a new student -->
+}
+
+@code {
+    private List<StudentDto>? students; // Holds the list of students retrieved from the backend
+    private string searchOption = "StudentID"; // Default search option
+    private string searchTerm = string.Empty; // Search term entered by the user
+    private DateTime? startDate; // Start date for enrollment date range search
+    private DateTime? endDate; // End date for enrollment date range search
+
+    // Lifecycle method called when the component is initialized.
+    // Fetches the list of students from the backend API.
+    protected override async Task OnInitializedAsync() 
+    {
+        students = await StudentService.GetStudentsAsync();
+    }
+
+    // Filters students based on selected search option (StudentID, LastName, or EnrollmentDate range).
+    private void SearchStudents() 
+    {
+        if (students == null) return;
+
+        if (searchOption == "StudentID" && int.TryParse(searchTerm, out int studentId)) // If searching by StudentID, it tries to parse the search term as an integer and filters the students list to find a match.
+        {
+            students = students.Where(s => s.StudentID == studentId).ToList();
+        }
+        else if (searchOption == "LastName") // If searching by Last Name, it filters the students list to include only those whose last name contains the search term (case-insensitive).
+        {
+            students = students.Where(s => s.LastName.Contains(searchTerm, StringComparison.OrdinalIgnoreCase)).ToList();
+        }
+        else if (searchOption == "EnrollmentDate" && startDate.HasValue && endDate.HasValue) // If searching by Enrollment Date Range, it filters the students list to include only those whose enrollment date falls within the specified range.
+        {
+            students = students.Where(s => s.EnrollmentDate >= startDate.Value && s.EnrollmentDate <= endDate.Value).ToList();
+        }
+    }
+
+    // Resets the search filters and reloads the full list of students from the backend API.
+    private async Task ResetSearch() 
+    {
+        searchTerm = string.Empty;
+        startDate = null;
+        endDate = null;
+        students = await StudentService.GetStudentsAsync();
+    }
+
+    // Navigates to the StudentForm page for editing a specific student.
+    private void EditStudent(int id) 
+    {
+        NavManager.NavigateTo($"student-form/{id}");
+    }
+
+    // Deletes a student by ID using StudentService.
+    private async Task DeleteStudent(int id)
+    {
+        if (await JSRuntime.InvokeAsync<bool>("confirm", $"Delete Student {id}?")) // Before deletion, it shows a confirmation dialog to the user.
+        {
+            await StudentService.DeleteStudentAsync(id); // If the user confirms, it calls the StudentService to delete the student by ID.
+            students = await StudentService.GetStudentsAsync(); // After deletion, it refreshes the list of students to reflect the changes in the UI.
+        }
+    }
+}

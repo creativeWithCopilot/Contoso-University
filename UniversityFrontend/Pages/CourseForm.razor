@@ -1,0 +1,83 @@
+@page "/course-form/{CourseID:int?}"
+@inject CourseService CourseService
+@using UniversityFrontend.DTOs
+@using UniversityFrontend.Services
+<!-- Heading changes depending on whether we are editing or adding a course -->
+<h3>@(CourseID.HasValue ? "Edit Course" : "Add Course")</h3>
+
+<!-- EditForm binds to the course model and handles validation + submission -->
+<EditForm Model="course" OnValidSubmit="HandleValidSubmit">
+    <DataAnnotationsValidator /> <!-- Enables attribute-based validation -->
+    <ValidationSummary /> <!-- Displays validation errors -->
+
+    <!-- Table layout for labels and inputs -->
+    <table class="form-table">
+        <tr>
+            <td><label>Course ID:</label></td>
+            <!-- CourseID is disabled when editing an existing course -->
+            <td><InputNumber @bind-Value="course.CourseID" disabled="@CourseID.HasValue" /></td>
+        </tr>
+        <tr>
+            <td><label>Title:</label></td>
+            <td><InputText @bind-Value="course.Title" /></td>
+        </tr>
+        <tr>
+            <td><label>Credits:</label></td>
+            <td><InputNumber @bind-Value="course.Credits" /></td>
+        </tr>
+        <tr>
+            <td colspan="2" style="text-align:right;"> <!-- Save button aligned to the right -->
+                <button type="submit" class="btn btn-primary">Save</button>
+            </td>
+        </tr>
+    </table>
+</EditForm>
+
+<!-- Display success message after add/update -->
+@if (message != null)
+{
+    <p>@message</p>
+}
+
+@code {
+    [Parameter] public int? CourseID { get; set; } // Optional parameter: if present, we are editing an existing course
+    private CourseCreateDto course = new(); // Model bound to the form inputs, used for both creating and updating courses
+    private string? message; // Holds success or feedback messages
+
+    protected override async Task OnInitializedAsync() // Lifecycle method called when the component is initialized.
+    {
+        if (CourseID.HasValue) // If CourseID is provided, we are editing an existing course, so we fetch its details to populate the form.
+        {
+            var existing = await CourseService.GetCourseAsync(CourseID.Value);
+            if (existing != null)
+            {
+                course = new CourseCreateDto
+                {
+                    CourseID = existing.CourseID,
+                    Title = existing.Title,
+                    Credits = existing.Credits
+                };
+            }
+        }
+    }
+
+    private async Task HandleValidSubmit() // Handles form submission.
+    {
+        if (!CourseID.HasValue) // If CourseID is not provided, we are adding a new course, so we call the AddCourseAsync method.
+        {
+            await CourseService.AddCourseAsync(course);
+            message = "Course added successfully!";
+        }
+        else // If CourseID is provided, we are updating an existing course, so we create a CourseUpdateDto and call the UpdateCourseAsync method.
+        {
+            var updateDto = new CourseUpdateDto
+            {
+                CourseID = course.CourseID,
+                Title = course.Title,
+                Credits = course.Credits
+            };
+            await CourseService.UpdateCourseAsync(updateDto);
+            message = "Course updated successfully!"; // Displays a success message after completion.
+        }
+    }
+}

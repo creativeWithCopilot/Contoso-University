@@ -1,0 +1,13 @@
+﻿@inherits LayoutComponentBase
+<!-- Main page layout wrapper -->
+<div class="page">
+    <header class="top-navbar"> <!-- Header section containing the navigation bar -->
+        <NavMenu /> <!-- Reusable navigation menu component -->
+    </header>
+
+    <main> <!-- Main content area -->
+        <article class="content px-4">
+            @Body <!-- @Body renders the content of the current page inside the layout -->
+        </article>
+    </main>
+</div>

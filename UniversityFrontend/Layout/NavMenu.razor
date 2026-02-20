@@ -1,0 +1,36 @@
+﻿<nav class="navbar navbar-expand-lg navbar-dark"> <!-- Navigation bar using Bootstrap classes -->
+    <div class="container-fluid">
+        <a class="navbar-brand" href="">Contoso University</a> <!-- Brand/logo link -->
+        <!-- Toggler button for collapsing/expanding menu on smaller screens -->
+        <button class="navbar-toggler" type="button" @onclick="ToggleNavMenu">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+
+        <!-- Collapsible navigation menu -->
+        <div class="@NavMenuCssClass navbar-collapse">
+            <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                <li class="nav-item">
+                    <NavLink class="nav-link" href="students">Students</NavLink>
+                </li>
+                <li class="nav-item">
+                    <NavLink class="nav-link" href="courses">Courses</NavLink>
+                </li>
+                <li class="nav-item">
+                    <NavLink class="nav-link" href="enrollments">Enrollments</NavLink>
+                </li>
+            </ul>
+        </div>
+    </div>
+</nav>
+
+@code {
+    private bool collapseNavMenu = true; // Tracks whether the navigation menu is collapsed (true) or expanded (false)
+    private string? NavMenuCssClass => collapseNavMenu ? "collapse" : "show"; // Returns the appropriate CSS class based on collapseNavMenu state
+
+    // Toggles the navigation menu between collapsed and expanded.
+    // Called when the navbar-toggler button is clicked.
+    private void ToggleNavMenu()
+    {
+        collapseNavMenu = !collapseNavMenu;
+    }
+}
