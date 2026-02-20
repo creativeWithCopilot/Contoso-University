@@ -1,24 +1,51 @@
 Contoso University is a sample application that demonstrates how to use Entity Framework Core in an ASP.NET Core Controller-Based web API and Blazor UI.
 I developed the backend for an ASP.NET Core Controller-Based Web API and called this API using Blazor.
 
-MIT License
+## 🚀 Features
 
-Copyright (c) 2024 Win Thein Htun
+### Students
+- View all students in a table.
+- Add new students via a form.
+- Edit existing student details.
+- Delete students with confirmation.
+- **Search options:**
+  - By **StudentID**
+  - By **LastName**
+  - By **EnrollmentDate range** (between two dates)
 
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
+### Courses
+- View all courses in a table.
+- Add new courses via a form.
+- Edit existing course details.
+- Delete courses.
+- **Search options:**
+  - By **CourseID**
+  - By **Title**
 
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
+### Enrollments
+- View all enrollments in a table.
+- Add new enrollments via a form.
+- Edit existing enrollment details.
+- Delete enrollments.
+- **Search options:**
+  - By **StudentID**
+  - By **CourseID**
 
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.<img width="763" height="471" alt="image" src="https://github.com/user-attachments/assets/f7f389b1-7d8e-4785-a9cf-74250e1a0f91" />
+---
+
+## 🛠️ Tech Stack
+
+- **Blazor WebAssembly** – frontend framework
+- **ASP.NET Core Web API** – backend service (expected)
+- **DTOs (Data Transfer Objects)** – for clean separation of models
+- **HttpClient** – for API communication
+- **Bootstrap** – for styling and responsive layout
+
+---
+## ▶️ Running the Project
+
+1. Clone the repository:
+2. Restore dependencies: dotnet restore
+3. Build the API and UI: dotnet build
+4. Run the project: dotnet run --launch-profile https
+5. Click on run the UI address
